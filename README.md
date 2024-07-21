@@ -1,6 +1,13 @@
 # `BackTrack Maze`
 
-![image](https://github.com/user-attachments/assets/88a53951-6e76-40ca-a13b-cbf79d12626c)
+
+
+
+https://github.com/user-attachments/assets/2865060f-5c1d-4554-ab22-23093e55dc15
+
+
+
+
 
 To create a maze with only one unique path from the initial corner to the diagonally opposite corner, you can use a maze generation algorithm like Depth-First Search (DFS) to ensure there is only one path.
 
