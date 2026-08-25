@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maze Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            overflow: hidden;
+        }
+
+        #maze {
+            position: relative;
+            background-color: #fff;
+            border: 2px solid #000;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+
+        .wall {
+            position: absolute;
+            background-color: #000;
+            z-index: 1;
+        }
+
+        #start, #finish {
+            position: absolute;
+            width: 5%;
+            height: 5%;
+            background-color: green;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        #start {
+            top: 1%;
+            left: 1%;
+        }
+
+        #finish {
+            bottom: 1%;
+            right: 1%;
+            background-color: red;
+        }
+
+        #message {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 3;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="message"></div>
+    <div id="maze">
+        <div id="start">Start</div>
+        <div id="finish">Finish</div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const mazeElement = document.getElementById("maze");
+            const start = document.getElementById("start");
+            const finish = document.getElementById("finish");
+            const messageElement = document.getElementById("message");
+            let gameStarted = false;
+
+            const rows = Math.floor(window.innerHeight / 50);
+            const cols = Math.floor(window.innerWidth / 50);
+            const cellSize = Math.min(window.innerWidth / cols, window.innerHeight / rows);
+            const walls = [];
+
+            function createMaze(rows, cols) {
+                const maze = Array.from({ length: rows }, () => Array(cols).fill(false));
+                const stack = [];
+                const directions = [
+                    { row: -1, col: 0 },
+                    { row: 1, col: 0 },
+                    { row: 0, col: -1 },
+                    { row: 0, col: 1 }
+                ];
+
+                function isInside(row, col) {
+                    return row >= 0 && row < rows && col >= 0 && col < cols;
+                }
+
+                function shuffle(array) {
+                    for (let i = array.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [array[i], array[j]] = [array[j], array[i]];
+                    }
+                    return array;
+                }
+
+                function carvePassagesFrom(row, col) {
+                    maze[row][col] = true;
+                    const shuffledDirections = shuffle(directions.slice());
+
+                    for (const direction of shuffledDirections) {
+                        const newRow = row + direction.row * 2;
+                        const newCol = col + direction.col * 2;
+
+                        if (isInside(newRow, newCol) && !maze[newRow][newCol]) {
+                            maze[row + direction.row][col + direction.col] = true;
+                            carvePassagesFrom(newRow, newCol);
+                        }
+                    }
+                }
+
+                carvePassagesFrom(0, 0);
+                return maze;
+            }
+
+            function renderMaze(maze) {
+                mazeElement.innerHTML = '';
+                mazeElement.appendChild(start);
+                mazeElement.appendChild(finish);
+
+                for (let row = 0; row < rows; row++) {
+                    for (let col = 0; col < cols; col++) {
+                        if (!maze[row][col]) {
+                            const wallDiv = document.createElement('div');
+                            wallDiv.className = 'wall';
+                            wallDiv.style.top = `${row * cellSize}px`;
+                            wallDiv.style.left = `${col * cellSize}px`;
+                            wallDiv.style.width = `${cellSize}px`;
+                            wallDiv.style.height = `${cellSize}px`;
+                            mazeElement.appendChild(wallDiv);
+                        }
+                    }
+                }
+
+                // Create boundary walls
+                createBoundaryWalls();
+            }
+
+            function createBoundaryWalls() {
+                const boundaryThickness = 10; // Thickness of the boundary walls in pixels
+
+                // Top boundary wall
+                const topWall = document.createElement('div');
+                topWall.className = 'wall';
+                topWall.style.top = '0';
+                topWall.style.left = '0';
+                topWall.style.width = '100%';
+                topWall.style.height = `${boundaryThickness}px`;
+                mazeElement.appendChild(topWall);
+
+                // Bottom boundary wall
+                const bottomWall = document.createElement('div');
+                bottomWall.className = 'wall';
+                bottomWall.style.bottom = '0';
+                bottomWall.style.left = '0';
+                bottomWall.style.width = '100%';
+                bottomWall.style.height = `${boundaryThickness}px`;
+                mazeElement.appendChild(bottomWall);
+
+                // Left boundary wall
+                const leftWall = document.createElement('div');
+                leftWall.className = 'wall';
+                leftWall.style.top = '0';
+                leftWall.style.left = '0';
+                leftWall.style.width = `${boundaryThickness}px`;
+                leftWall.style.height = '100%';
+                mazeElement.appendChild(leftWall);
+
+                // Right boundary wall
+                const rightWall = document.createElement('div');
+                rightWall.className = 'wall';
+                rightWall.style.top = '0';
+                rightWall.style.right = '0';
+                rightWall.style.width = `${boundaryThickness}px`;
+                rightWall.style.height = '100%';
+                mazeElement.appendChild(rightWall);
+            }
+
+            function showMessage(message) {
+                messageElement.textContent = message;
+                messageElement.style.display = 'block';
+                setTimeout(() => {
+                    messageElement.style.display = 'none';
+                }, 2000);
+            }
+
+            function resetGame() {
+                gameStarted = false;
+                const newMaze = createMaze(rows, cols);
+                renderMaze(newMaze);
+            }
+
+            start.addEventListener("mouseover", () => {
+                if (!gameStarted) {
+                    gameStarted = true;
+                    mazeElement.style.border = "2px solid #000";
+                    showMessage("Game Started! Navigate to the Finish without touching the walls.");
+                }
+            });
+
+            mazeElement.addEventListener("mouseover", event => {
+                if (event.target.classList.contains('wall') && gameStarted) {
+                    showMessage("Game Over! You touched a wall.");
+                    resetGame();
+                }
+            });
+
+            finish.addEventListener("mouseover", () => {
+                if (gameStarted) {
+                    showMessage("Congratulations! You won.");
+                    resetGame();
+                }
+            });
+
+            window.addEventListener('resize', resetGame);
+
+            resetGame();
+        });
+    </script>
+</body>
+</html>
