@@ -617,6 +617,108 @@
             box-shadow: none;
         }
 
+        /* Telegram Status Panel Styles */
+        .telegram-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-pill {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-pill::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-connected, .status-live {
+            background: rgba(57, 255, 20, 0.15);
+            color: #39ff14;
+            border: 1px solid rgba(57, 255, 20, 0.3);
+        }
+        .status-connected::before, .status-live::before {
+            background: #39ff14;
+            box-shadow: 0 0 6px #39ff14;
+        }
+
+        .status-connecting {
+            background: rgba(255, 215, 0, 0.15);
+            color: #ffd700;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+        .status-connecting::before {
+            background: #ffd700;
+        }
+
+        .status-disconnected, .status-error, .status-reconnecting {
+            background: rgba(255, 42, 95, 0.15);
+            color: #ff2a5f;
+            border: 1px solid rgba(255, 42, 95, 0.3);
+        }
+        .status-disconnected::before, .status-error::before, .status-reconnecting::before {
+            background: #ff2a5f;
+        }
+
+        .telegram-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .theme-retro .telegram-card {
+            border: 1px solid #1e820a;
+            border-radius: 0;
+            background: none;
+        }
+
+        .tg-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+        }
+
+        .tg-info-label {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.5px;
+        }
+
+        .tg-info-val {
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--text-main);
+        }
+
+        .tg-info-val.highlight {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 0.78rem;
+            border-radius: 8px;
+            width: 100%;
+        }
+
         /* Modal Screens */
         .modal {
             position: fixed;
@@ -969,6 +1071,31 @@
                 </div>
             </div>
 
+            <!-- Telegram Remote Controller Status -->
+            <div class="control-group telegram-panel">
+                <div class="telegram-header">
+                    <label style="display: flex; align-items: center; gap: 6px;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="color: var(--accent);"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.52 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+                        <span>Telegram Control</span>
+                    </label>
+                    <span id="tg-status-pill" class="status-pill status-connecting">Connecting</span>
+                </div>
+                
+                <div class="telegram-card">
+                    <div class="tg-info-row">
+                        <span class="tg-info-label">Chat ID</span>
+                        <span class="tg-info-val" id="tg-chatid-display">8461529217</span>
+                    </div>
+                    <div class="tg-info-row">
+                        <span class="tg-info-label">Last Command</span>
+                        <span class="tg-info-val highlight" id="tg-last-cmd">-</span>
+                    </div>
+                    <button id="btn-tg-send-keypad" class="btn btn-outline btn-sm" title="Send interactive keypad buttons to Telegram chat">
+                        📱 Send Controller Keypad
+                    </button>
+                </div>
+            </div>
+
             <button id="btn-new-game" class="btn">
                 <span>🔄</span> New Maze
             </button>
@@ -1017,6 +1144,7 @@
                     <span class="key-cap">◀</span>
                     <span class="key-cap">▶</span>
                     <span class="key-cap">W/A/S/D</span>
+                    <span class="key-cap">📱 Telegram</span>
                 </div>
             </div>
 
@@ -1060,6 +1188,13 @@
     </div>
 
     <script>
+        // Telegram Bot Configuration
+        const TELEGRAM_CONFIG = {
+            BOT_TOKEN: '8916124014:AAH93comiipAxKgKicOs3VZ2d62L74RgP30',
+            CHAT_ID: '8461529217',
+            POLL_TIMEOUT_SEC: 10
+        };
+
         // Retro Sound Synthesizer via Web Audio API
         class SoundSynth {
             constructor() {
@@ -1068,11 +1203,15 @@
             }
 
             init() {
-                if (!this.ctx) {
-                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (this.ctx.state === 'suspended') {
-                    this.ctx.resume();
+                try {
+                    if (!this.ctx) {
+                        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    if (this.ctx && this.ctx.state === 'suspended') {
+                        this.ctx.resume().catch(() => {});
+                    }
+                } catch (e) {
+                    // Audio context may be restricted before user gesture
                 }
             }
 
@@ -1161,6 +1300,285 @@
             }
         }
 
+        // Telegram Remote Game Controller
+        class TelegramController {
+            constructor(game) {
+                this.game = game;
+                this.token = TELEGRAM_CONFIG.BOT_TOKEN;
+                this.chatId = TELEGRAM_CONFIG.CHAT_ID;
+                this.polling = false;
+                this.offset = 0;
+                this.lastCommand = '-';
+                this.status = 'disconnected';
+                this.abortController = null;
+                this.commandQueue = [];
+                this.isProcessingQueue = false;
+            }
+
+            init() {
+                this.statusPill = document.getElementById('tg-status-pill');
+                this.lastCmdDisplay = document.getElementById('tg-last-cmd');
+                this.btnSendKeypad = document.getElementById('btn-tg-send-keypad');
+
+                if (this.btnSendKeypad) {
+                    this.btnSendKeypad.addEventListener('click', () => {
+                        this.sendControllerKeyboard("🎮 *BackTrack Maze Remote Controller*\nUse buttons below to navigate!");
+                    });
+                }
+
+                // Start polling Telegram updates
+                this.start();
+            }
+
+            setStatus(status, text) {
+                this.status = status;
+                if (!this.statusPill) return;
+                this.statusPill.className = `status-pill status-${status}`;
+                this.statusPill.textContent = text || status;
+            }
+
+            setLastCommand(cmd) {
+                this.lastCommand = cmd;
+                if (this.lastCmdDisplay) {
+                    this.lastCmdDisplay.textContent = cmd;
+                }
+            }
+
+            start() {
+                if (this.polling) return;
+                this.polling = true;
+                this.setStatus('connecting', 'Connecting');
+                this.pollLoop();
+                // Send ready keypad message
+                this.sendControllerKeyboard("🎮 *BackTrack Maze Connected!*\n\nUse buttons below to control the player:\n• ⬆️ *UP*\n• ⬇️ *DOWN*\n• ⬅️ *LEFT*\n• ➡️ *RIGHT*");
+            }
+
+            stop() {
+                this.polling = false;
+                if (this.abortController) {
+                    this.abortController.abort();
+                    this.abortController = null;
+                }
+                this.setStatus('disconnected', 'Disconnected');
+            }
+
+            async sendControllerKeyboard(text) {
+                try {
+                    await fetch(`https://api.telegram.org/bot${this.token}/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            chat_id: this.chatId,
+                            text: text,
+                            parse_mode: 'Markdown',
+                            reply_markup: {
+                                keyboard: [
+                                    [{ text: "⬆️ UP" }],
+                                    [{ text: "⬅️ LEFT" }, { text: "⬇️ DOWN" }, { text: "➡️ RIGHT" }]
+                                ],
+                                resize_keyboard: true,
+                                is_persistent: true
+                            }
+                        })
+                    });
+                } catch (err) {
+                    console.warn('Could not send Telegram message:', err);
+                }
+            }
+
+            async sendMessage(text) {
+                try {
+                    await fetch(`https://api.telegram.org/bot${this.token}/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            chat_id: this.chatId,
+                            text: text,
+                            parse_mode: 'Markdown'
+                        })
+                    });
+                } catch (err) {
+                    console.warn('Could not send Telegram message:', err);
+                }
+            }
+
+            async pollLoop() {
+                let firstPoll = true;
+                while (this.polling) {
+                    try {
+                        this.abortController = new AbortController();
+                        const url = `https://api.telegram.org/bot${this.token}/getUpdates?offset=${this.offset}&timeout=${TELEGRAM_CONFIG.POLL_TIMEOUT_SEC}&allowed_updates=["message"]`;
+                        
+                        const res = await fetch(url, { signal: this.abortController.signal });
+                        if (!res.ok) {
+                            throw new Error(`HTTP ${res.status}`);
+                        }
+                        const data = await res.json();
+                        
+                        if (data.ok && Array.isArray(data.result)) {
+                            this.setStatus('connected', 'Live');
+
+                            for (const update of data.result) {
+                                this.offset = update.update_id + 1;
+                                const msg = update.message || update.edited_message || update.channel_post;
+                                if (!msg || !msg.text) continue;
+
+                                // Filter by configured Chat ID
+                                const fromChatId = String(msg.chat.id);
+                                if (this.chatId && fromChatId !== this.chatId) {
+                                    console.log(`Ignored message from unconfigured chat: ${fromChatId}`);
+                                    continue;
+                                }
+
+                                // Skip backlog messages older than 60 seconds on initial poll
+                                const nowSec = Date.now() / 1000;
+                                if (firstPoll && msg.date && (nowSec - msg.date > 60)) {
+                                    continue;
+                                }
+
+                                this.processIncomingText(msg.text);
+                            }
+                            firstPoll = false;
+                        } else {
+                            this.setStatus('error', 'Error');
+                            await new Promise(r => setTimeout(r, 2500));
+                        }
+                    } catch (err) {
+                        if (err.name === 'AbortError') break;
+                        this.setStatus('error', 'Reconnecting');
+                        await new Promise(r => setTimeout(r, 2500));
+                    }
+                }
+            }
+
+            processIncomingText(rawText) {
+                const text = rawText.trim();
+                const lower = text.toLowerCase();
+                
+                // Check if command is a multi-word sequence (e.g. "up up left down")
+                const tokens = lower.split(/[\s,]+/);
+
+                if (tokens.length > 1 && tokens.every(t => this.isDirectionToken(t))) {
+                    for (const tok of tokens) {
+                        this.queueAction(tok);
+                    }
+                } else {
+                    this.queueAction(text);
+                }
+            }
+
+            isDirectionToken(tok) {
+                return ['up', 'u', 'w', 'top', '⬆', '⬆️',
+                        'down', 's', 'bottom', '⬇', '⬇️',
+                        'left', 'a', 'l', 'west', '⬅', '⬅️',
+                        'right', 'd', 'r', 'east', '➡️'].includes(tok);
+            }
+
+            queueAction(cmdStr) {
+                this.commandQueue.push(cmdStr);
+                this.processQueue();
+            }
+
+            async processQueue() {
+                if (this.isProcessingQueue) return;
+                this.isProcessingQueue = true;
+
+                while (this.commandQueue.length > 0) {
+                    const raw = this.commandQueue.shift();
+                    this.executeCommand(raw);
+                    if (this.commandQueue.length > 0) {
+                        await new Promise(r => setTimeout(r, 120));
+                    }
+                }
+
+                this.isProcessingQueue = false;
+            }
+
+            executeCommand(rawText) {
+                const t = rawText.trim().toLowerCase();
+                this.game.sound.init(); // Warm audio context
+
+                // Direction: UP
+                if (['up', '/up', 'w', 'u', 'top', 'north', '⬆', '⬆️', '⬆️ up'].includes(t) || t === 'up') {
+                    this.setLastCommand('⬆️ UP');
+                    this.handleMove(-1, 0);
+                    return;
+                }
+
+                // Direction: DOWN
+                if (['down', '/down', 's', 'bottom', 'south', '⬇', '⬇️', '⬇️ down'].includes(t) || t === 'down') {
+                    this.setLastCommand('⬇️ DOWN');
+                    this.handleMove(1, 0);
+                    return;
+                }
+
+                // Direction: LEFT
+                if (['left', '/left', 'a', 'l', 'west', '⬅', '⬅️', '⬅️ left'].includes(t) || t === 'left') {
+                    this.setLastCommand('⬅️ LEFT');
+                    this.handleMove(0, -1);
+                    return;
+                }
+
+                // Direction: RIGHT
+                if (['right', '/right', 'd', 'r', 'east', '➡️', '➡️ right'].includes(t) || t === 'right') {
+                    this.setLastCommand('➡️ RIGHT');
+                    this.handleMove(0, 1);
+                    return;
+                }
+
+                // Start Game / New Maze
+                if (['start', '/start', 'play', 'new', '/new', 'new game', '🚀 start game', '🚀 start'].includes(t) || t.startsWith('/start')) {
+                    this.setLastCommand('🚀 START');
+                    if (this.game.victoryModal.classList.contains('active')) {
+                        this.game.victoryModal.classList.remove('active');
+                    }
+                    this.game.startNewMaze();
+                    return;
+                }
+
+                // Restart
+                if (['restart', '/restart', 'reset', '/reset', '🔄 restart'].includes(t) || t.startsWith('/restart')) {
+                    this.setLastCommand('🔄 RESTART');
+                    if (this.game.victoryModal.classList.contains('active')) {
+                        this.game.victoryModal.classList.remove('active');
+                    }
+                    this.game.startNewMaze();
+                    return;
+                }
+
+                // Next Level
+                if (['next', '/next', 'next level', 'continue'].includes(t) || t.startsWith('/next')) {
+                    this.setLastCommand('⏩ NEXT');
+                    if (this.game.victoryModal.classList.contains('active')) {
+                        this.game.btnModalNext.click();
+                    } else {
+                        this.game.startNewMaze();
+                    }
+                    return;
+                }
+
+                // Help
+                if (['help', '/help', '?'].includes(t)) {
+                    this.sendControllerKeyboard("🕹️ *Controls:*\n• ⬆️ `up` / `w`\n• ⬇️ `down` / `s`\n• ⬅️ `left` / `a`\n• ➡️ `right` / `d`");
+                }
+            }
+
+            handleMove(dr, dc) {
+                // If game is in start overlay state, launch maze first
+                if (!this.game.gameActive && !this.game.generating) {
+                    if (this.game.victoryModal.classList.contains('active')) {
+                        this.game.victoryModal.classList.remove('active');
+                    }
+                    this.game.startNewMaze();
+                    return;
+                }
+
+                if (this.game.gameActive) {
+                    this.game.movePlayer(dr, dc);
+                }
+            }
+        }
+
         // Cell Definition for the Maze Graph
         class Cell {
             constructor(r, c) {
@@ -1181,6 +1599,9 @@
                 
                 // Audio synth
                 this.sound = new SoundSynth();
+
+                // Telegram Controller
+                this.telegram = new TelegramController(this);
 
                 // Settings & UI state
                 this.rows = 20;
@@ -1340,6 +1761,11 @@
                 this.bindDpadButton('dpad-down', 1, 0);
                 this.bindDpadButton('dpad-left', 0, -1);
                 this.bindDpadButton('dpad-right', 0, 1);
+
+                // Initialize Telegram Bot Controller
+                if (this.telegram) {
+                    this.telegram.init();
+                }
             }
 
             bindDpadButton(id, dr, dc) {
@@ -1755,6 +2181,11 @@
                 this.mMoves.textContent = this.moveCount;
                 this.mOptimal.textContent = optimal;
                 this.mEfficiency.textContent = `${efficiency}%`;
+
+                // Send Victory Notification to Telegram
+                if (this.telegram) {
+                    this.telegram.sendMessage(`🏆 *Maze Escaped!* 🎉\n\n⏱️ *Time:* ${this.formatTime(this.elapsedTimeMs)}\n👣 *Moves:* ${this.moveCount} (Optimal: ${optimal})\n🎯 *Efficiency:* ${efficiency}%\n\nType \`start\` or \`next\` to continue!`);
+                }
 
                 // Add to Leaderboards
                 this.saveScore(this.selectDifficulty.value, this.elapsedTimeMs);
